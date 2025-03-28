@@ -5,3 +5,4 @@ transformers
 torch
 pydantic
 python-dotenv
+starlette
