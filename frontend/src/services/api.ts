@@ -14,3 +14,15 @@ export async function analyzeVideo(url: string): Promise<AnalyzeResponse> {
     throw error;
   }
 }
+
+export async function fetchComments(videoId: string): Promise<Comment[]> {
+  try {
+    const response = await fetch(`${BACKEND_URL}/comments/${videoId}`);
+    if (!response.ok)
+      throw new Error(`Failed to fetch comments for video ${videoId}`);
+    return await response.json();
+  } catch (error) {
+    console.error(`Error in fetchComments(${videoId}):`, error);
+    throw error;
+  }
+}

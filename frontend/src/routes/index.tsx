@@ -5,51 +5,33 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import { Switch } from "@/components/ui/switch";
-import { analyzeVideo } from "@/services/api"; // ✅ Fixed import name
-import { createFileRoute } from "@tanstack/react-router";
-import { useQuery } from "@tanstack/react-query";
 import { useState } from "react";
 
 export const Route = createFileRoute("/")({
-  component: App,
+  component: SearchPage,
 });
 
-interface AnalyzeResponse {
-  video_id: string;
-  title: string;
-  channel_id: string;
-  statistics: {
-    view_count: number;
-    like_count: number;
-    comment_count: number;
-  };
-  num_comments_analyzed: number;
-}
-
-function App() {
+function SearchPage() {
   const [videoUrl, setVideoUrl] = useState("");
   const [selectedMode, setSelectedMode] = useState("default");
   const [saveHistory, setSaveHistory] = useState(true);
-
-  const { isLoading, refetch: fetchAnalysis } = useQuery<
-    AnalyzeResponse,
-    Error
-  >({
-    queryKey: ["analyzeVideo", videoUrl],
-    queryFn: () => analyzeVideo(videoUrl),
-    enabled: false,
-  });
+  const navigate = useNavigate();
 
   const handleAnalyze = (e: React.FormEvent<HTMLFormElement>): void => {
     e.preventDefault();
     if (!videoUrl.trim()) return;
-    fetchAnalysis();
+    // Navigate to /video with the video URL as a query parameter
+    navigate({
+      to: "/video",
+      search: { url: videoUrl },
+    });
   };
 
   return (
@@ -66,8 +48,8 @@ function App() {
           onChange={(e) => setVideoUrl(e.target.value)}
           className="w-full h-12"
         />
-        <Button type="submit" disabled={isLoading} className="h-12">
-          {isLoading ? "Analyzing..." : "Analyze"}
+        <Button type="submit" className="h-12">
+          Analyze
         </Button>
       </form>
       <Separator className="w-full my-6" />
@@ -100,4 +82,4 @@ function App() {
   );
 }
 
-export default App;
+export default SearchPage;
