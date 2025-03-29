@@ -3,6 +3,7 @@ export interface AnalyzeResponse {
   video_id: string;
   title: string;
   channel_id: string;
+  channel_name: string;
   thumbnail_url?: string;
 
   statistics: {

@@ -44,7 +44,7 @@ export function VideoDetails({ analysis }: VideoDetailsProps) {
             />
             <div>
               <h3 className="text-lg font-bold">{analysis.title}</h3>
-              <p className="text-sm text-gray-300">{analysis.channel_id}</p>
+              <p className="text-sm text-gray-300">{analysis.channel_name}</p>
             </div>
           </div>
         </div>
