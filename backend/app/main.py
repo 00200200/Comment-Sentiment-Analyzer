@@ -13,8 +13,8 @@ app = FastAPI(
 origins = [
     f"http://{settings.HOST}:{settings.FRONTEND_PORT}",  # Frontend
     f"http://{settings.HOST}:{settings.BACKEND_PORT}",  # Backend
-    "http://localhost:{settings.FRONTEND_PORT}",
-    "http://emotube-frontend:{settings.FRONTEND_PORT}",
+    f"http://localhost:{settings.FRONTEND_PORT}",
+    f"http://emotube-frontend:{settings.FRONTEND_PORT}",
 ]
 
 app.add_middleware(
