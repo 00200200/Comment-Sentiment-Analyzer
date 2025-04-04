@@ -5,4 +5,5 @@ transformers
 torch
 pydantic
 python-dotenv
+starlette
 numpy<2
