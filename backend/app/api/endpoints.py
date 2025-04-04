@@ -10,8 +10,11 @@ router = APIRouter()
 video_data_store = {}
 comments_data_store = {}
 
+
 @router.get("/analyze", response_model=schemas.AnalyzeResponse)
-async def analyze_video(video_url: str = Query(..., description="Full YouTube URL or video ID")):
+async def analyze_video(
+    video_url: str = Query(..., description="Full YouTube URL or video ID")
+):
     video_id = text_utils.extract_video_id(video_url)
 
     try:
@@ -108,20 +111,17 @@ async def analyze_video(video_url: str = Query(..., description="Full YouTube UR
             chunks = text_utils.chunk_text(text)
             sentiments = [sentiment.analyze_text(chunk) for chunk in chunks]
             avg_sentiment = sum(s["score"] for s in sentiments) / len(sentiments)
-            comment_sentiment_label = sentiments[0]["label"]
-
+            sentiment_label = sentiments[0]["label"]
             comments.append(schemas.Comment(
                 comment_id=item["id"],
                 text=text,
                 author=comment_data["authorDisplayName"],
-                sentiment=round(avg_sentiment, 2),
-                sentiment_label=comment_sentiment_label,
-                like_count=int(comment_data.get("likeCount", 0)),
-                dislike_count=int(comment_data.get("dislikeCount", 0)),
-                published_at=comment_data.get("publishedAt")
+                sentiment=avg_sentiment,
+                sentiment_label=sentiment_label,
+                like_count=comment_data.get("likeCount", 0),
+                published_at=comment_data.get("publishedAt"),
             ))
-
-        # Save current video stats for future comparison.
+        
         video_data_store[video_id] = video_stats
         comments_data_store[video_id] = comments
 
@@ -132,11 +132,14 @@ async def analyze_video(video_url: str = Query(..., description="Full YouTube UR
             channel_name=video_stats.channel_name,
             thumbnail_url=video_stats.thumbnail_url,
             statistics=video_stats,
-            num_comments_analyzed=len(comments)
+            num_comments_analyzed=len(comments),
         )
 
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Error processing comments: {str(e)}")
+        raise HTTPException(
+            status_code=500, detail=f"Error processing comments: {str(e)}"
+        )
+
 
 @router.get("/comments/{video_id}", response_model=List[schemas.Comment])
 async def get_comments(video_id: str):

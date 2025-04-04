@@ -2,6 +2,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from app.api import endpoints
 from app.core.config import settings
+from fastapi.middleware.cors import CORSMiddleware
 
 app = FastAPI(
     title="Emotube API",
@@ -27,6 +28,7 @@ app.add_middleware(
 
 app.include_router(endpoints.router)
 
+
 if __name__ == "__main__":
     import uvicorn
-    uvicorn.run(app, host=settings.HOST, port=settings.BACKEND_PORT, reload=True)
+    uvicorn.run(app, host=settings.HOST, port=settings.PORT, reload=True)
