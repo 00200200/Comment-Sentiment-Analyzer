@@ -1,5 +1,5 @@
 from pydantic import BaseModel
-
+from typing import Optional
 class VideoStats(BaseModel):
     title: str
     channel_id: str
@@ -25,7 +25,7 @@ class Comment(BaseModel):
     sentiment_label: str
     sentiment: float
     like_count: int
-    dislike_count: int
+    dislike_count: Optional[int] = 0
     published_at: str
 
 class AnalyzeResponse(BaseModel):
