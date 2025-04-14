@@ -4,6 +4,34 @@ dist
 dist-ssr
 *.local
 
+# --- Frontend (Vite + React) ---
+node_modules/
+dist/
+dist-ssr/
+.vite/
+
+# Local dev config
+.env.local
+*.local
+
+# VS Code
+.vscode/
+
+# Logs
+npm-debug.log*
+bun-debug.log*
+
+# OS junk
+.DS_Store
+Thumbs.db
+
+# Bun runtime files (optional)
+.bun/
+
+# Storybook (if you add it later)
+storybook-static/
+
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
