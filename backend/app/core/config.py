@@ -8,8 +8,7 @@ class Settings:
     HOST: str = os.getenv("HOST", "0.0.0.0")
     FRONTEND_PORT: str = os.getenv("FRONTEND_PORT", "3000")
     BACKEND_PORT: int = int(os.getenv("BACKEND_PORT", "8000"))
-    MODEL_NAME: str = "distilbert-base-uncased-finetuned-sst-2-english"
-
+    MODEL_NAME: str = "cardiffnlp/twitter-xlm-roberta-base-sentiment"
 settings = Settings()
 
 if not settings.YOUTUBE_API_KEY:

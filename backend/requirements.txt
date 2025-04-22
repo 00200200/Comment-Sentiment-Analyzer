@@ -6,4 +6,6 @@ torch
 pydantic
 python-dotenv
 starlette
+hf_xet
 numpy<2
+sentencepiece

@@ -3,7 +3,6 @@ from typing import List
 from app.core import youtube_client, sentiment
 from app.models import schemas
 from app.utils import text_utils
-
 router = APIRouter()
 
 # In-memory stores for current and historical data.
@@ -146,3 +145,5 @@ async def get_comments(video_id: str):
     if video_id not in comments_data_store:
         raise HTTPException(status_code=404, detail="No comments found for this video.")
     return comments_data_store[video_id]
+
+
