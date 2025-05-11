@@ -7,24 +7,25 @@ services:
     env_file:
       - .env
     restart: unless-stopped
-    # depends_on:
-    #   - db # Automatically starts the database when enabled
+    volumes:
+      - ./backend:/app
+    depends_on:
+      - db # Automatically starts the database when enabled
     networks:
       - emotube-network
 
-  # PostgreSQL Database (Uncomment to enable)
-  # db:
-  #   image: postgres:15
-  #   container_name: emotube-db
-  #   restart: unless-stopped
-  #   env_file:
-  #     - .env
-  #   ports:
-  #     - "5432:5432"
-  #   volumes:
-  #     - postgres_data:/var/lib/postgresql/data
-  #   networks:
-  #     - emotube-network
+  db:
+    image: postgres:15
+    container_name: emotube-db
+    restart: unless-stopped
+    env_file:
+      - .env
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - emotube-network
 
   frontend:
     build: ./frontend
@@ -33,7 +34,7 @@ services:
       - "3000:3000"
     volumes:
       - ./frontend:/app
-      - /app/node_modules # Prevent local override of node_modules
+      - /app/node_modules
     working_dir: /app
     command: bun run start --host
     env_file:
@@ -45,6 +46,6 @@ services:
 
 networks:
   emotube-network:
-# Volumes (Uncomment when PostgreSQL is enabled)
-# volumes:
-#   postgres_data:
+
+volumes:
+  postgres_data:

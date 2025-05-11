@@ -1,3 +1,4 @@
+from datetime import datetime
 import re
 from typing import List
 
@@ -14,3 +15,7 @@ def chunk_text(text: str, max_length: int = 512) -> List[str]:
         chunks.append(" ".join(chunk))
         words = words[max_length:]
     return chunks
+
+def parse_datetime(dt_str: str) -> datetime:
+    # Converts string like "2025-05-11T22:33:20Z" to naive UTC datetime
+    return datetime.fromisoformat(dt_str.replace("Z", "+00:00")).replace(tzinfo=None)
