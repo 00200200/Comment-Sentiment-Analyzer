@@ -1,6 +1,7 @@
 from pydantic import BaseModel
 from typing import Optional
 from datetime import datetime
+from typing import List
 
 class VideoResponse(BaseModel):
     id: str
@@ -28,3 +29,21 @@ class VideoResponse(BaseModel):
     
     class Config:
         orm_mode = True
+
+class AnalyzedVideoSummary(BaseModel):
+    video_id: str
+    title: str
+    channel_name: str
+    thumbnail_url: str
+    published_at: datetime
+    view_count: int
+    comment_count: int
+    total_analyzed: int
+    analysis_state: str
+
+class AnalyzedVideoList(BaseModel):
+    videos: List[AnalyzedVideoSummary]
+    offset: int
+    limit: int
+    total: int
+    has_more: bool

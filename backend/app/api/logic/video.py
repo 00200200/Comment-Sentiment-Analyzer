@@ -10,6 +10,8 @@ from app.models.video import EngagementLevel, AnalysisState
 from app.utils.text_utils import parse_datetime
 from datetime import timezone
 import logging
+from app.crud.video import get_analyzed_videos_paginated
+from app.schemas.video import AnalyzedVideoSummary, AnalyzedVideoList
 
 logger = logging.getLogger(__name__)
 
@@ -72,3 +74,29 @@ async def get_or_create_video(video_id: str, db: AsyncSession, background_tasks:
     except Exception as e:
         logger.exception(f"Error processing video_id={video_id}")
         raise
+
+async def get_paginated_video_list(
+    db: AsyncSession, offset: int, limit: int
+) -> AnalyzedVideoList:
+    videos, total = await get_analyzed_videos_paginated(db, offset, limit)
+
+    return AnalyzedVideoList(
+        videos=[
+            AnalyzedVideoSummary(
+                video_id=v.id,
+                title=v.title,
+                channel_name=v.channel_name,
+                thumbnail_url=v.thumbnail_url,
+                published_at=v.published_at,
+                view_count=v.view_count,
+                comment_count=v.comment_count,
+                total_analyzed=v.total_analyzed,
+                analysis_state=v.analysis_state,
+            )
+            for v in videos
+        ],
+        offset=offset,
+        limit=limit,
+        total=total,
+        has_more=(offset + len(videos)) < total
+    )
