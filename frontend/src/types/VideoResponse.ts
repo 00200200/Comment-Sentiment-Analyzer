@@ -1,12 +1,14 @@
-export interface VideoStats {
+export interface VideoResponse {
+  id: string;
   title: string;
   channel_id: string;
   channel_name: string;
   thumbnail_url: string;
   view_count: number;
   like_count: number;
-  dislike_count: number;
   comment_count: number;
+  published_at: string;
+
   view_change_pct: number;
   sentiment_label: string;
   sentiment_positive_pct: number;
@@ -14,17 +16,9 @@ export interface VideoStats {
   engagement_pct: number;
   trend: string;
   trend_explanation: string;
-}
 
-export interface AnalyzeResponse {
-  video_id: string;
-  title: string;
-  channel_id: string;
-  channel_name: string;
-  thumbnail_url: string;
-  statistics: VideoStats;
-  num_comments_analyzed: number;
-  total_comments: number;
   analysis_state: string;
-  data_fetched_at: number;
+  total_analyzed: number;
+  fetched_at: string;
+  last_update: string;
 }

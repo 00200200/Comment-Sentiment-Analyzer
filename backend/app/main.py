@@ -1,6 +1,6 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from app.api.routes import comments, videos
+from app.api.routes import comments, videos, chart_data
 from app.core.config import settings
 
 app = FastAPI(
@@ -28,6 +28,7 @@ app.add_middleware(
 # Include feature-based routers
 app.include_router(videos.router)
 app.include_router(comments.router)
+app.include_router(chart_data.router)
 
 @app.on_event("startup")
 async def on_startup():

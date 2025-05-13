@@ -1,4 +1,4 @@
-import type { AnalyzeResponse } from "@/types/AnalyzeResponse";
+import type { AnalyzeResponse } from "@/types/VideoResponse";
 import { analyzeVideo } from "@/services/api";
 // src/hooks/useVideoAnalysis.ts
 import { useQuery } from "@tanstack/react-query";

@@ -26,20 +26,6 @@ class Comment(BaseModel):
         )
 
 
-class CommentInDB(BaseModel):
-    id: str
-    video_id: str
-    author: str
-    text: str
-    like_count: int
-    dislike_count: int
-    published_at: datetime
-    sentiment_label: str
-    sentiment_score: float
-
-    class Config:
-        orm_mode = True
-
 
 class CommentsResponse(BaseModel):
     video_id: str
@@ -50,15 +36,6 @@ class CommentsResponse(BaseModel):
     limit: int
     has_more: bool
     analysis_state: str
-
-
-class CommentAnalysisProgress(BaseModel):
-    video_id: str
-    state: str
-    total_available: int
-    last_update: float
-    has_more: bool
-    estimated_completion: Optional[float] = None
 
 
 class ChartComment(BaseModel):

@@ -17,6 +17,7 @@ export const Route = createFileRoute("/video")({
 
 function VideoAnalysisPage() {
   const searchParams = useSearch({ from: "/video", strict: true });
+
   const {
     data: analysis,
     isLoading: analysisLoading,
@@ -55,11 +56,9 @@ function VideoAnalysisPage() {
       <div className="max-w-5xl mx-auto px-4 pt-4 pb-16">
         <VideoDetails analysis={analysis} />
 
-        {/* Pass videoId instead of comments */}
-        <CommentCharts videoId={analysis.video_id} />
-
-        {/* Pass videoId instead of comments */}
-        <Comments videoId={analysis.video_id} />
+        {/* Pass video URL to chart/comments components */}
+        <CommentCharts url={searchParams.url} />
+        <Comments url={searchParams.url} />
       </div>
     </div>
   );

@@ -14,7 +14,6 @@ import {
 import { useEffect, useState } from "react";
 
 import { Button } from "@/components/ui/button";
-import type { Comment } from "@/types/Comment";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { SlidersHorizontal } from "lucide-react";
@@ -24,11 +23,10 @@ import { useComments } from "@/hooks/useComments";
 const COMMENTS_PER_PAGE = 5;
 
 interface CommentsProps {
-  videoId: string;
+  url: string; // ✅ Updated from videoId
 }
 
-export default function Comments({ videoId }: CommentsProps) {
-  // Filter state
+export default function Comments({ url }: CommentsProps) {
   const [page, setPage] = useState(1);
   const [sortBy, setSortBy] = useState<
     "published_at" | "like_count" | "sentiment" | undefined
@@ -40,7 +38,7 @@ export default function Comments({ videoId }: CommentsProps) {
   const [sentimentFilter, setSentimentFilter] = useState("");
   const [minLikes, setMinLikes] = useState<number | null>(null);
 
-  // Reset filters when video changes
+  // ✅ Reset on url change
   useEffect(() => {
     setPage(1);
     setSortBy("published_at");
@@ -48,30 +46,25 @@ export default function Comments({ videoId }: CommentsProps) {
     setKeyword("");
     setSentimentFilter("");
     setMinLikes(null);
-  }, [videoId]);
+  }, [url]);
 
-  // Fetch comments with backend filtering, sorting, and pagination
   const {
     data: commentsResponse,
     isLoading,
     error,
     refetch,
-  } = useComments(videoId, {
+  } = useComments(url, {
     offset: (page - 1) * COMMENTS_PER_PAGE,
     limit: COMMENTS_PER_PAGE,
-    sortBy: sortBy,
-    sortOrder: sortOrder,
+    sortBy,
+    sortOrder,
     sentiment: sentimentFilter || undefined,
     minLikes: minLikes || undefined,
     author: keyword || undefined,
   });
 
-  // Apply filters and refetch
-  const applyFilters = () => {
-    refetch();
-  };
+  const applyFilters = () => refetch();
 
-  // Get sentiment counts from backend response
   const sentimentCounts = {
     positive: 0,
     negative: 0,
@@ -79,7 +72,6 @@ export default function Comments({ videoId }: CommentsProps) {
     ambiguous: 0,
   };
 
-  // Only process if we have comments
   if (commentsResponse?.comments) {
     commentsResponse.comments.forEach((comment) => {
       const label = comment.sentiment_label.toLowerCase();
@@ -99,11 +91,12 @@ export default function Comments({ videoId }: CommentsProps) {
           <StatBlock label="Ambiguous" value={sentimentCounts.ambiguous} />
         </div>
       )}
+
       <div className="flex justify-between items-center mb-4">
         <h2 className="text-2xl font-semibold">Comments</h2>
         <div className="flex items-center gap-4">
           <span className="text-gray-500 text-sm">
-            {commentsResponse?.total_analyzed ?? 0} comments analyzed
+            {commentsResponse?.total_available ?? 0} comments analyzed
           </span>
           <Popover>
             <PopoverTrigger asChild>
@@ -136,6 +129,7 @@ export default function Comments({ videoId }: CommentsProps) {
                       <option value="sentiment">Sentiment</option>
                     </select>
                   </div>
+
                   <div className="grid grid-cols-3 items-center gap-4">
                     <Label>Order</Label>
                     <select
@@ -149,6 +143,7 @@ export default function Comments({ videoId }: CommentsProps) {
                       <option value="asc">Ascending</option>
                     </select>
                   </div>
+
                   <div className="grid grid-cols-3 items-center gap-4">
                     <Label>Sentiment</Label>
                     <select
@@ -162,6 +157,7 @@ export default function Comments({ videoId }: CommentsProps) {
                       <option value="neutral">Neutral</option>
                     </select>
                   </div>
+
                   <div className="grid grid-cols-3 items-center gap-4">
                     <Label htmlFor="author">Author</Label>
                     <Input
@@ -172,6 +168,7 @@ export default function Comments({ videoId }: CommentsProps) {
                       className="col-span-2 h-8"
                     />
                   </div>
+
                   <div className="grid grid-cols-3 items-center gap-4">
                     <Label htmlFor="minLikes">Min likes</Label>
                     <Input
@@ -188,6 +185,7 @@ export default function Comments({ videoId }: CommentsProps) {
                       className="col-span-2 h-8"
                     />
                   </div>
+
                   <Button onClick={applyFilters} className="mt-2">
                     Apply Filters
                   </Button>
@@ -212,7 +210,7 @@ export default function Comments({ videoId }: CommentsProps) {
       {commentsResponse?.analysis_state === "in_progress" && (
         <div className="bg-blue-50 dark:bg-blue-900/20 p-3 rounded mb-4">
           <p>
-            Still analyzing comments... {commentsResponse.total_analyzed} of{" "}
+            Still analyzing comments... {commentsResponse.total_available} of{" "}
             {commentsResponse.total_available} analyzed so far.
           </p>
         </div>
@@ -234,7 +232,7 @@ export default function Comments({ videoId }: CommentsProps) {
       </div>
 
       {commentsResponse &&
-        commentsResponse.total_analyzed > COMMENTS_PER_PAGE && (
+        commentsResponse.total_available > COMMENTS_PER_PAGE && (
           <div className="mt-4 flex flex-col items-center space-y-2">
             <Pagination className="mt-2">
               <PaginationContent>
@@ -254,7 +252,7 @@ export default function Comments({ videoId }: CommentsProps) {
                   <span className="px-4">
                     Page {page} of{" "}
                     {Math.ceil(
-                      commentsResponse.total_analyzed / COMMENTS_PER_PAGE
+                      commentsResponse.total_available / COMMENTS_PER_PAGE
                     )}
                   </span>
                 </PaginationItem>

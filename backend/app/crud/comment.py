@@ -6,7 +6,6 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import asc, desc, func
 
 from app.models.comment import Comment
-from app.models.video import Video
 from app.schemas.comment import CommentsResponse
 from app.crud.video import get_video_by_id
 

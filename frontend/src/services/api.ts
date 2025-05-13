@@ -1,16 +1,17 @@
-import type { AnalyzeResponse } from "@/types/AnalyzeResponse";
-import type { CommentAnalysisProgress } from "@/types/CommentAnalysisProgress";
+import type { AnalyzedVideoList } from "@/types/AnalyzedVideoList";
+import type { ChartCommentsResponse } from "@/types/ChartCommentsResponse";
 import type { CommentsResponse } from "@/types/CommentsResponse";
+import type { VideoResponse } from "@/types/VideoResponse";
 
 const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || "http://127.0.0.1:8000";
 
 /**
- * Analyzes a YouTube video and returns initial results
+ * Triggers analysis of a YouTube video by URL.
  */
-export async function analyzeVideo(url: string): Promise<AnalyzeResponse> {
+export async function analyzeVideo(url: string): Promise<VideoResponse> {
   try {
     const response = await fetch(
-      `${BACKEND_URL}/analyze?video_url=${encodeURIComponent(url)}`
+      `${BACKEND_URL}/videos?url=${encodeURIComponent(url)}`
     );
 
     if (!response.ok) {
@@ -28,10 +29,10 @@ export async function analyzeVideo(url: string): Promise<AnalyzeResponse> {
 }
 
 /**
- * Fetches comments for a video with optional filtering and pagination
+ * Fetches comments for a video by URL, with optional filtering and pagination.
  */
 export async function fetchComments(
-  videoId: string,
+  url: string,
   options: {
     offset?: number;
     limit?: number;
@@ -44,8 +45,8 @@ export async function fetchComments(
 ): Promise<CommentsResponse> {
   try {
     const params = new URLSearchParams();
+    params.append("url", url);
 
-    // Add optional parameters if provided
     if (options.offset !== undefined)
       params.append("offset", options.offset.toString());
     if (options.limit !== undefined)
@@ -57,8 +58,9 @@ export async function fetchComments(
     if (options.sortBy) params.append("sort_by", options.sortBy);
     if (options.sortOrder) params.append("sort_order", options.sortOrder);
 
-    const url = `${BACKEND_URL}/comments/${videoId}${params.toString() ? "?" + params.toString() : ""}`;
-    const response = await fetch(url);
+    const response = await fetch(
+      `${BACKEND_URL}/comments?${params.toString()}`
+    );
 
     if (!response.ok) {
       const errorData = await response.json().catch(() => null);
@@ -69,68 +71,61 @@ export async function fetchComments(
 
     return await response.json();
   } catch (error) {
-    console.error(`Error in fetchComments(${videoId}):`, error);
+    console.error(`Error in fetchComments(${url}):`, error);
     throw error;
   }
 }
 
 /**
- * Gets the current progress of comment analysis
+ * Fetches chart-compatible comment data for sentiment trends.
  */
-export async function getAnalysisProgress(
-  videoId: string
-): Promise<CommentAnalysisProgress> {
+export async function fetchChartData(
+  url: string
+): Promise<ChartCommentsResponse> {
   try {
-    const response = await fetch(`${BACKEND_URL}/analysis-progress/${videoId}`);
+    const response = await fetch(
+      `${BACKEND_URL}/chart-data?url=${encodeURIComponent(url)}`
+    );
 
     if (!response.ok) {
       const errorData = await response.json().catch(() => null);
       throw new Error(
-        `Failed to get analysis progress: ${errorData?.detail || response.statusText}`
+        `Failed to fetch chart data: ${errorData?.detail || response.statusText}`
       );
     }
 
     return await response.json();
   } catch (error) {
-    console.error(`Error in getAnalysisProgress(${videoId}):`, error);
+    console.error(`Error in fetchChartData(${url}):`, error);
     throw error;
   }
 }
 
 /**
- * Manually triggers continued analysis for a video
+ * Fetches a paginated list of previously analyzed videos.
  */
-export async function continueAnalysis(videoId: string): Promise<{
-  message: string;
-  state: string;
-  current_progress?: any;
-}> {
+export async function fetchAnalyzedVideos(
+  offset = 0,
+  limit = 25
+): Promise<AnalyzedVideoList> {
   try {
-    const response = await fetch(`${BACKEND_URL}/analyze/continue/${videoId}`, {
-      method: "POST",
+    const params = new URLSearchParams({
+      offset: offset.toString(),
+      limit: limit.toString(),
     });
 
+    const response = await fetch(`${BACKEND_URL}/videos?${params.toString()}`);
+
     if (!response.ok) {
       const errorData = await response.json().catch(() => null);
       throw new Error(
-        `Failed to continue analysis: ${errorData?.detail || response.statusText}`
+        `Failed to fetch analyzed videos: ${errorData?.detail || response.statusText}`
       );
     }
 
     return await response.json();
   } catch (error) {
-    console.error(`Error in continueAnalysis(${videoId}):`, error);
+    console.error("Error in fetchAnalyzedVideos:", error);
     throw error;
   }
-}
-
-// src/services/api.ts
-export async function fetchChartData(videoId: string) {
-  const response = await fetch(`${BACKEND_URL}/chart-data/${videoId}`);
-
-  if (!response.ok) {
-    throw new Error("Failed to fetch chart data");
-  }
-
-  return response.json(); // Return the parsed JSON response
 }

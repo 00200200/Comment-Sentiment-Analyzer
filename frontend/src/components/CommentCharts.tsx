@@ -1,6 +1,6 @@
 import * as React from "react";
-import { Area, AreaChart, CartesianGrid, XAxis } from "recharts";
 
+import { Area, AreaChart, CartesianGrid, XAxis } from "recharts";
 import {
   Card,
   CardContent,
@@ -8,7 +8,6 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { type ChartConfig } from "@/components/ui/chart";
 import {
   ChartContainer,
   ChartLegend,
@@ -23,48 +22,31 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { useComments } from "@/hooks/useComments";
+
+import { useChartData } from "@/hooks/useChartData"; // New hook we'll define
 
 interface CommentChartsProps {
-  videoId: string;
+  url: string;
 }
 
-export default function CommentCharts({ videoId }: CommentChartsProps) {
+export default function CommentCharts({ url }: CommentChartsProps) {
   const [timeRange, setTimeRange] = React.useState("all");
 
-  // For charts, we need all comments, not just paginated ones
-  const {
-    data: commentsResponse,
-    isLoading,
-    error,
-  } = useComments(videoId, {
-    limit: 500, // Request larger batch for charting
-    sortBy: "published_at",
-    sortOrder: "asc",
-  });
+  const { data: chartResponse, isLoading, error } = useChartData(url); // Uses the chart-data?url= endpoint
 
-  if (isLoading) {
+  if (isLoading)
     return <div className="mt-8">Loading comment analytics...</div>;
-  }
-
-  if (error) {
+  if (error)
     return (
       <div className="mt-8 text-red-500">
         Failed to load comment analytics: {error.message}
       </div>
     );
-  }
+  if (!chartResponse || chartResponse.comments.length === 0) return null;
 
-  if (!commentsResponse || commentsResponse.comments.length === 0) {
-    return null;
-  }
-
-  // Process comments to create time-series data
-  const commentsByDate = commentsResponse.comments.reduce(
+  const commentsByDate = chartResponse.comments.reduce(
     (acc, comment) => {
-      // Extract just the date part (YYYY-MM-DD)
       const date = comment.published_at.split("T")[0];
-
       if (!acc[date]) {
         acc[date] = {
           date,
@@ -75,7 +57,7 @@ export default function CommentCharts({ videoId }: CommentChartsProps) {
         };
       }
 
-      switch (comment.sentiment_label.toLowerCase()) {
+      switch (comment.sentiment_label?.toLowerCase()) {
         case "positive":
           acc[date].positive += 1;
           break;
@@ -103,16 +85,13 @@ export default function CommentCharts({ videoId }: CommentChartsProps) {
     >
   );
 
-  // Convert to array and sort by date
   let chartData = Object.values(commentsByDate).sort(
     (a, b) => new Date(a.date).getTime() - new Date(b.date).getTime()
   );
 
-  // Filter data based on selected time range
   if (timeRange !== "all") {
     const today = new Date();
     const startDate = new Date();
-
     switch (timeRange) {
       case "7d":
         startDate.setDate(today.getDate() - 7);
@@ -128,48 +107,22 @@ export default function CommentCharts({ videoId }: CommentChartsProps) {
     chartData = chartData.filter((item) => new Date(item.date) >= startDate);
   }
 
-  // Chart configuration for the stacked area chart
   const chartConfig = {
-    sentiment: {
-      label: "Sentiment",
-    },
-    positive: {
-      label: "Positive",
-      color: "hsl(var(--chart-2))",
-    },
-    neutral: {
-      label: "Neutral",
-      color: "hsl(var(--chart-1))",
-    },
-    negative: {
-      label: "Negative",
-      color: "hsl(var(--chart-3))",
-    },
-    ambiguous: {
-      label: "Ambiguous",
-      color: "hsl(var(--chart-4))",
-    },
-  } satisfies ChartConfig;
+    sentiment: { label: "Sentiment" },
+    positive: { label: "Positive", color: "hsl(var(--chart-2))" },
+    neutral: { label: "Neutral", color: "hsl(var(--chart-1))" },
+    negative: { label: "Negative", color: "hsl(var(--chart-3))" },
+    ambiguous: { label: "Ambiguous", color: "hsl(var(--chart-4))" },
+  };
 
-  // Show progress indicator if we're still analyzing comments
-  const analysisInProgress = commentsResponse.analysis_state === "in_progress";
-  const progressPercent =
-    commentsResponse.total_available > 0
-      ? Math.round(
-          (commentsResponse.total_analyzed / commentsResponse.total_available) *
-            100
-        )
-      : 0;
   return (
     <section className="mt-8 grid gap-6">
-      {/* Area Chart for sentiment over time */}
       <Card>
         <CardHeader className="flex items-center gap-2 space-y-0 border-b py-5 sm:flex-row">
           <div className="grid flex-1 gap-1 text-center sm:text-left">
             <CardTitle>Sentiment Trends</CardTitle>
             <CardDescription>
               Sentiment analysis of comments over time
-              {analysisInProgress && ` (${progressPercent}% analyzed)`}
             </CardDescription>
           </div>
           <Select value={timeRange} onValueChange={setTimeRange}>
@@ -180,21 +133,14 @@ export default function CommentCharts({ videoId }: CommentChartsProps) {
               <SelectValue placeholder="All time" />
             </SelectTrigger>
             <SelectContent className="rounded-xl">
-              <SelectItem value="all" className="rounded-lg">
-                All time
-              </SelectItem>
-              <SelectItem value="90d" className="rounded-lg">
-                Last 90 days
-              </SelectItem>
-              <SelectItem value="30d" className="rounded-lg">
-                Last 30 days
-              </SelectItem>
-              <SelectItem value="7d" className="rounded-lg">
-                Last 7 days
-              </SelectItem>
+              <SelectItem value="all">All time</SelectItem>
+              <SelectItem value="90d">Last 90 days</SelectItem>
+              <SelectItem value="30d">Last 30 days</SelectItem>
+              <SelectItem value="7d">Last 7 days</SelectItem>
             </SelectContent>
           </Select>
         </CardHeader>
+
         <CardContent className="px-2 pt-4 sm:px-6 sm:pt-6">
           {chartData.length > 0 ? (
             <ChartContainer
@@ -277,12 +223,12 @@ export default function CommentCharts({ videoId }: CommentChartsProps) {
                   cursor={false}
                   content={
                     <ChartTooltipContent
-                      labelFormatter={(value: string) => {
-                        return new Date(value).toLocaleDateString("en-US", {
+                      labelFormatter={(value: string) =>
+                        new Date(value).toLocaleDateString("en-US", {
                           month: "short",
                           day: "numeric",
-                        });
-                      }}
+                        })
+                      }
                       indicator="dot"
                     />
                   }
