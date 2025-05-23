@@ -1,7 +1,7 @@
 import { createFileRoute, useSearch } from "@tanstack/react-router";
 
 import CommentCharts from "@/components/CommentCharts";
-import Comments from "@/components/Comments";
+import CommentSection from "@/components/CommentSection";
 import { Header } from "@/components/Header";
 import { VideoDetails } from "@/components/VideoDetails";
 import { useEffect } from "react";
@@ -58,7 +58,7 @@ function VideoAnalysisPage() {
 
         {/* Pass video URL to chart/comments components */}
         <CommentCharts url={searchParams.url} />
-        <Comments url={searchParams.url} />
+        <CommentSection url={searchParams.url} />
       </div>
     </div>
   );
