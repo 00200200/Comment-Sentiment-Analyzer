@@ -1,4 +1,4 @@
-from typing import List, Optional
+from typing import Dict, List, Optional
 from datetime import datetime
 
 from sqlalchemy import select, asc, desc, func
@@ -8,6 +8,34 @@ from app.models.comment import CommentModel
 from app.models.enums import SentimentLabel
 from app.schemas.comment import CommentSchema, CommentsResponseSchema
 from app.crud.video import get_video_by_id
+
+
+async def get_sentiment_totals(
+    db: AsyncSession,
+    video_id: str,
+    sentiment: Optional[SentimentLabel] = None,
+    author: Optional[str] = None,
+    min_likes: Optional[int] = None,
+    phrase: Optional[str] = None
+) -> Dict[SentimentLabel, int]:
+    query = select(CommentModel.sentiment_label, func.count()).where(CommentModel.video_id == video_id)
+
+    if sentiment:
+        query = query.where(CommentModel.sentiment_label == sentiment)
+    if author:
+        query = query.where(CommentModel.author.ilike(f"%{author}%"))
+    if min_likes is not None:
+        query = query.where(CommentModel.like_count >= min_likes)
+    if phrase:
+        query = query.where(CommentModel.text.ilike(f"%{phrase}%"))
+
+    query = query.group_by(CommentModel.sentiment_label)
+    result = await db.execute(query)
+    counts = dict(result.all())
+
+    totals = {label: 0 for label in SentimentLabel}
+    totals.update(counts)
+    return totals
 
 
 async def get_comment_by_id(db: AsyncSession, comment_id: str) -> Optional[CommentModel]:
@@ -70,43 +98,37 @@ async def query_comments(
     phrase: Optional[str],
 ) -> CommentsResponseSchema:
     base_query = select(CommentModel).where(CommentModel.video_id == video_id)
-    sentiment_count_query = select(CommentModel.sentiment_label, func.count()).where(CommentModel.video_id == video_id)
 
+    sentiment_enum = None
     if sentiment:
         try:
             sentiment_enum = SentimentLabel(sentiment)
             base_query = base_query.where(CommentModel.sentiment_label == sentiment_enum)
-            sentiment_count_query = sentiment_count_query.where(CommentModel.sentiment_label == sentiment_enum)
         except ValueError:
             sentiment_enum = SentimentLabel.NEUTRAL
             base_query = base_query.where(CommentModel.sentiment_label == sentiment_enum)
-            sentiment_count_query = sentiment_count_query.where(CommentModel.sentiment_label == sentiment_enum)
 
     if author:
         base_query = base_query.where(CommentModel.author.ilike(f"%{author}%"))
-        sentiment_count_query = sentiment_count_query.where(CommentModel.author.ilike(f"%{author}%"))
-
     if min_likes is not None:
         base_query = base_query.where(CommentModel.like_count >= min_likes)
-        sentiment_count_query = sentiment_count_query.where(CommentModel.like_count >= min_likes)
-
     if phrase:
         base_query = base_query.where(CommentModel.text.ilike(f"%{phrase}%"))
-        sentiment_count_query = sentiment_count_query.where(CommentModel.text.ilike(f"%{phrase}%"))
 
-    # Get total available count
-    count_query = select(func.count()).select_from(base_query.subquery())
-    total_available = await db.scalar(count_query)
+    total_available = await db.scalar(
+        select(func.count()).select_from(base_query.subquery())
+    )
 
-    # Prepare full sentiment counts (before pagination)
-    sentiment_count_query = sentiment_count_query.group_by(CommentModel.sentiment_label)
-    sentiment_counts_result = await db.execute(sentiment_count_query)
-    sentiment_counts = dict(sentiment_counts_result.all())
+    # Call helper to get sentiment totals
+    sentiment_totals = await get_sentiment_totals(
+        db=db,
+        video_id=video_id,
+        sentiment=sentiment_enum,
+        author=author,
+        min_likes=min_likes,
+        phrase=phrase
+    )
 
-    sentiment_totals = {label: 0 for label in SentimentLabel}
-    sentiment_totals.update(sentiment_counts)
-
-    # Apply sorting and pagination
     sort_column = getattr(CommentModel, sort_by, CommentModel.published_at)
     order = asc(sort_column) if sort_order == "asc" else desc(sort_column)
     base_query = base_query.order_by(order).offset(offset).limit(limit)

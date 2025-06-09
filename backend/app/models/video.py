@@ -1,7 +1,12 @@
 from __future__ import annotations
 from datetime import datetime
+from typing import Optional, Dict
+from sqlalchemy import Column
+from sqlalchemy.dialects.postgresql import JSONB
 from sqlmodel import SQLModel, Field
+
 from app.models.enums import AnalysisState, EngagementLevel, SentimentLabel 
+
 
 class Video(SQLModel, table=True):
     __tablename__ = "videos"
@@ -17,6 +22,9 @@ class Video(SQLModel, table=True):
     published_at: datetime
 
     view_change_pct: float = 0.0
+    sentiment_totals: Optional[Dict[str, int]] = Field(
+        default_factory=dict, sa_column=Column(JSONB, nullable=True)
+    )
     sentiment_label: SentimentLabel = Field(default=SentimentLabel.NEUTRAL)
     sentiment_positive_pct: float = 0.0
     engagement_level: EngagementLevel = Field(default=EngagementLevel.MEDIUM)

@@ -1,6 +1,7 @@
 from pydantic import BaseModel, ConfigDict
-from typing import Optional, List
+from typing import List, Dict, Optional
 from datetime import datetime
+from app.models.enums import SentimentLabel
 
 class VideoResponse(BaseModel):
     model_config = ConfigDict(from_attributes=True)
@@ -18,6 +19,7 @@ class VideoResponse(BaseModel):
     view_change_pct: float
     sentiment_label: str
     sentiment_positive_pct: float
+    sentiment_totals: Optional[Dict[SentimentLabel, int]] = None
     engagement_level: str
     engagement_pct: float
     trend: str
@@ -27,6 +29,7 @@ class VideoResponse(BaseModel):
     total_analyzed: int
     fetched_at: datetime
     last_update: datetime
+    
 
 class AnalyzedVideoSummary(BaseModel):
     video_id: str
@@ -36,6 +39,7 @@ class AnalyzedVideoSummary(BaseModel):
     published_at: datetime
     view_count: int
     comment_count: int
+    sentiment_totals: Optional[Dict[SentimentLabel, int]] = None
     total_analyzed: int
     analysis_state: str
 

@@ -1,9 +1,10 @@
 from typing import Optional, Union
 from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Query
 from sqlalchemy.ext.asyncio import AsyncSession
+
 from app.utils.text_utils import extract_video_id
 from app.api.logic.video import get_or_create_video, get_paginated_video_list
-from app.schemas.video import VideoResponse, AnalyzedVideoList, AnalyzedVideoSummary
+from app.schemas.video import VideoResponse, AnalyzedVideoList
 from app.db.session import get_db
 
 router = APIRouter()
@@ -17,12 +18,9 @@ async def get_videos(
     db: AsyncSession = Depends(get_db)
 ):
     if url:
-        try:
-            video_id = extract_video_id(url)
-            if not video_id:
-                raise HTTPException(status_code=400, detail="Invalid YouTube URL")
-            return await get_or_create_video(video_id, db, background_tasks)
-        except Exception as e:
-            raise HTTPException(status_code=500, detail=str(e))
-    else:
-        return await get_paginated_video_list(db, offset, limit)
+        video_id = extract_video_id(url)
+        if not video_id:
+            raise HTTPException(status_code=400, detail="Invalid YouTube video URL")
+        return await get_or_create_video(video_id, db, background_tasks)
+    
+    return await get_paginated_video_list(db, offset, limit)
