@@ -1,5 +1,6 @@
 import logging
 import asyncio
+from collections import Counter
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.crud import comment as crud_comment
@@ -13,14 +14,15 @@ logger = logging.getLogger(__name__)
 
 async def analyze_all_comments(db: AsyncSession, video_id: str):
     try:
-        logger.info(f"[BG] Start analysis for video {video_id}")
+        logger.info(f"[BG] Starting analysis for video {video_id}")
         await crud_video.update_video_analysis_state(db, video_id, AnalysisState.IN_PROGRESS)
 
         next_page = None
         total_analyzed = 0
+        sentiment_totals = Counter()
 
         while True:
-            await asyncio.sleep(1)  # Respect API rate limit
+            await asyncio.sleep(1)  # Respect API rate limits
 
             try:
                 comments, next_page = fetch_video_comments(video_id, page_token=next_page)
@@ -37,16 +39,17 @@ async def analyze_all_comments(db: AsyncSession, video_id: str):
             for comment in comments:
                 try:
                     sentiment = analyze_text(comment["text"])
-                    # Map sentiment string to enum
-                    sentiment_mapping = {
+                    sentiment_label = {
                         "positive": SentimentLabel.POSITIVE,
                         "neutral": SentimentLabel.NEUTRAL,
                         "negative": SentimentLabel.NEGATIVE,
-                        "ambiguous": SentimentLabel.AMBIGUOUS
-                    }
-                    sentiment["label"] = sentiment_mapping.get(sentiment["label"], SentimentLabel.NEUTRAL)
-                    
+                        "ambiguous": SentimentLabel.AMBIGUOUS,
+                    }.get(sentiment["label"], SentimentLabel.NEUTRAL)
+
+                    sentiment["label"] = sentiment_label
                     await crud_comment.save_comment(db, video_id, comment, sentiment)
+
+                    sentiment_totals[sentiment_label] += 1
                     total_analyzed += 1
                 except Exception:
                     logger.exception(f"[BG] Error analyzing/saving comment: {comment.get('text', '')[:30]}...")
@@ -58,7 +61,7 @@ async def analyze_all_comments(db: AsyncSession, video_id: str):
                 total_analyzed=total_analyzed
             )
 
-            logger.info(f"[BG] Analyzed batch of {len(comments)} comments, total: {total_analyzed}")
+            logger.debug(f"[BG] Processed {len(comments)} comments, total analyzed: {total_analyzed}")
 
             if not next_page:
                 break
@@ -70,7 +73,8 @@ async def analyze_all_comments(db: AsyncSession, video_id: str):
             total_analyzed=total_analyzed
         )
 
-        logger.info(f"[BG] Completed analysis for {video_id}. Total analyzed: {total_analyzed}")
+        logger.info(f"[BG] Completed analysis for {video_id}. Total: {total_analyzed}")
+        logger.info(f"[BG] Sentiment breakdown: {dict(sentiment_totals)}")
 
     except Exception:
         logger.exception(f"[BG] Fatal error during analysis for video {video_id}")

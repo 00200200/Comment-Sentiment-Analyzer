@@ -10,7 +10,6 @@ class CommentModel(SQLModel, table=True):
     author: str
     text: str
     like_count: int
-    dislike_count: int = 0
     published_at: datetime
     
     sentiment_label: SentimentLabel = Field(default=SentimentLabel.NEUTRAL)

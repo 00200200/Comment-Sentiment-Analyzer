@@ -11,13 +11,11 @@ from app.crud.video import get_video_by_id
 
 
 async def get_comment_by_id(db: AsyncSession, comment_id: str) -> Optional[CommentModel]:
-    """Get a comment by its ID (used to prevent duplicates)."""
     result = await db.execute(select(CommentModel).where(CommentModel.id == comment_id))
     return result.scalars().first()
 
 
 async def get_latest_comment_date(db: AsyncSession, video_id: str) -> Optional[datetime]:
-    """Get the date of the most recent comment for a video."""
     result = await db.execute(
         select(CommentModel)
         .where(CommentModel.video_id == video_id)
@@ -29,7 +27,6 @@ async def get_latest_comment_date(db: AsyncSession, video_id: str) -> Optional[d
 
 
 async def get_chart_comments(db: AsyncSession, video_id: str) -> List[tuple]:
-    """Get comment ID, timestamp, and sentiment for chart visualizations."""
     result = await db.execute(
         select(CommentModel.id, CommentModel.published_at, CommentModel.sentiment_label)
         .where(CommentModel.video_id == video_id)
@@ -39,10 +36,9 @@ async def get_chart_comments(db: AsyncSession, video_id: str) -> List[tuple]:
 
 
 async def save_comment(db: AsyncSession, video_id: str, comment: dict, sentiment: dict):
-    """Insert a single analyzed comment unless it's already in the DB."""
     try:
         if await get_comment_by_id(db, comment["id"]):
-            return  # Avoid duplicate inserts
+            return
 
         db_comment = CommentModel(
             id=comment["id"],
@@ -74,22 +70,43 @@ async def query_comments(
     phrase: Optional[str],
 ) -> CommentsResponseSchema:
     base_query = select(CommentModel).where(CommentModel.video_id == video_id)
+    sentiment_count_query = select(CommentModel.sentiment_label, func.count()).where(CommentModel.video_id == video_id)
 
     if sentiment:
         try:
-            base_query = base_query.where(CommentModel.sentiment_label == SentimentLabel(sentiment))
+            sentiment_enum = SentimentLabel(sentiment)
+            base_query = base_query.where(CommentModel.sentiment_label == sentiment_enum)
+            sentiment_count_query = sentiment_count_query.where(CommentModel.sentiment_label == sentiment_enum)
         except ValueError:
-            base_query = base_query.where(CommentModel.sentiment_label == SentimentLabel.NEUTRAL)  # fallback
+            sentiment_enum = SentimentLabel.NEUTRAL
+            base_query = base_query.where(CommentModel.sentiment_label == sentiment_enum)
+            sentiment_count_query = sentiment_count_query.where(CommentModel.sentiment_label == sentiment_enum)
+
     if author:
         base_query = base_query.where(CommentModel.author.ilike(f"%{author}%"))
+        sentiment_count_query = sentiment_count_query.where(CommentModel.author.ilike(f"%{author}%"))
+
     if min_likes is not None:
         base_query = base_query.where(CommentModel.like_count >= min_likes)
+        sentiment_count_query = sentiment_count_query.where(CommentModel.like_count >= min_likes)
+
     if phrase:
         base_query = base_query.where(CommentModel.text.ilike(f"%{phrase}%"))
+        sentiment_count_query = sentiment_count_query.where(CommentModel.text.ilike(f"%{phrase}%"))
 
+    # Get total available count
     count_query = select(func.count()).select_from(base_query.subquery())
     total_available = await db.scalar(count_query)
 
+    # Prepare full sentiment counts (before pagination)
+    sentiment_count_query = sentiment_count_query.group_by(CommentModel.sentiment_label)
+    sentiment_counts_result = await db.execute(sentiment_count_query)
+    sentiment_counts = dict(sentiment_counts_result.all())
+
+    sentiment_totals = {label: 0 for label in SentimentLabel}
+    sentiment_totals.update(sentiment_counts)
+
+    # Apply sorting and pagination
     sort_column = getattr(CommentModel, sort_by, CommentModel.published_at)
     order = asc(sort_column) if sort_order == "asc" else desc(sort_column)
     base_query = base_query.order_by(order).offset(offset).limit(limit)
@@ -101,7 +118,9 @@ async def query_comments(
     total_expected = video.comment_count if video else total_available
     analysis_state = video.analysis_state if video else "unknown"
 
-    comments = [CommentSchema.model_validate(c) for c in comment_rows]
+    comments = [
+        CommentSchema.model_validate(c).model_dump(exclude={"sentiment_totals"}) for c in comment_rows
+    ]
 
     return CommentsResponseSchema(
         video_id=video_id,
@@ -112,4 +131,5 @@ async def query_comments(
         limit=limit,
         has_more=(offset + len(comments)) < total_expected,
         analysis_state=analysis_state,
+        sentiment_totals=sentiment_totals,
     )

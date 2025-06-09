@@ -1,6 +1,8 @@
 from pydantic import BaseModel
-from typing import Optional, List
+from typing import Dict, Optional, List
 from datetime import datetime
+
+from app.models.enums import SentimentLabel
 
 class CommentSchema(BaseModel):
     id: str
@@ -9,7 +11,6 @@ class CommentSchema(BaseModel):
     sentiment_label: str
     sentiment_score: float
     like_count: int
-    dislike_count: Optional[int] = 0
     published_at: datetime
 
     model_config = {
@@ -20,6 +21,7 @@ class CommentSchema(BaseModel):
 class CommentsResponseSchema(BaseModel):
     video_id: str
     comments: List[CommentSchema]
+    sentiment_totals: Dict[SentimentLabel, int]
     total_available: int
     total_expected: int
     offset: int
