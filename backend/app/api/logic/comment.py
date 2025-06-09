@@ -1,14 +1,15 @@
 import logging
 import asyncio
 from sqlalchemy.ext.asyncio import AsyncSession
+
 from app.crud import comment as crud_comment
 from app.crud import video as crud_video
 from app.core.integrations.youtube.youtube_client import fetch_video_comments
 from app.core.sentiment.sentiment import analyze_text
-from app.models.video import AnalysisState
-from app.schemas.comment import Comment, CommentsResponse
+from app.models.enums import AnalysisState, SentimentLabel
 
 logger = logging.getLogger(__name__)
+
 
 async def analyze_all_comments(db: AsyncSession, video_id: str):
     try:
@@ -23,7 +24,7 @@ async def analyze_all_comments(db: AsyncSession, video_id: str):
 
             try:
                 comments, next_page = fetch_video_comments(video_id, page_token=next_page)
-            except Exception as e:
+            except Exception:
                 logger.exception(f"[BG] Failed to fetch comments for video {video_id} (page: {next_page})")
                 await crud_video.update_video_analysis_state(db, video_id, AnalysisState.FAILED)
                 return
@@ -36,6 +37,15 @@ async def analyze_all_comments(db: AsyncSession, video_id: str):
             for comment in comments:
                 try:
                     sentiment = analyze_text(comment["text"])
+                    # Map sentiment string to enum
+                    sentiment_mapping = {
+                        "positive": SentimentLabel.POSITIVE,
+                        "neutral": SentimentLabel.NEUTRAL,
+                        "negative": SentimentLabel.NEGATIVE,
+                        "ambiguous": SentimentLabel.AMBIGUOUS
+                    }
+                    sentiment["label"] = sentiment_mapping.get(sentiment["label"], SentimentLabel.NEUTRAL)
+                    
                     await crud_comment.save_comment(db, video_id, comment, sentiment)
                     total_analyzed += 1
                 except Exception:
@@ -67,8 +77,19 @@ async def analyze_all_comments(db: AsyncSession, video_id: str):
         await crud_video.update_video_analysis_state(db, video_id, AnalysisState.FAILED)
 
 
-async def get_comments_paginated(db, video_id, offset, limit, sentiment, author, min_likes, sort_by, sort_order):
-    results = await crud_comment.query_comments(
+async def get_comments_paginated(
+    db,
+    video_id,
+    offset,
+    limit,
+    sentiment,
+    author,
+    min_likes,
+    phrase,
+    sort_by,
+    sort_order
+):
+    return await crud_comment.query_comments(
         db=db,
         video_id=video_id,
         offset=offset,
@@ -76,18 +97,7 @@ async def get_comments_paginated(db, video_id, offset, limit, sentiment, author,
         sentiment=sentiment,
         author=author,
         min_likes=min_likes,
+        phrase=phrase,
         sort_by=sort_by,
         sort_order=sort_order
     )
-
-    return CommentsResponse(
-        video_id=video_id,
-        comments=[Comment.from_orm_model(c) for c in results["comments"]],
-        total_available=results["total_available"],
-        total_expected=results["total_expected"],
-        offset=offset,
-        limit=limit,
-        has_more=(offset + len(results["comments"])) < results["total_available"],
-        analysis_state=results["analysis_state"]
-    )
-

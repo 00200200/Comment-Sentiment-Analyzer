@@ -1,16 +1,8 @@
-from sqlmodel import SQLModel, Field, Relationship
-from typing import Optional
+from sqlmodel import SQLModel, Field
 from datetime import datetime
-from enum import Enum
+from app.models.enums import SentimentLabel
 
-
-class SentimentLabel(str, Enum):
-    POSITIVE = "positive"
-    NEUTRAL = "neutral"
-    NEGATIVE = "negative"
-
-
-class Comment(SQLModel, table=True):
+class CommentModel(SQLModel, table=True):
     __tablename__ = "comments"
     
     id: str = Field(primary_key=True)
@@ -21,9 +13,5 @@ class Comment(SQLModel, table=True):
     dislike_count: int = 0
     published_at: datetime
     
-    # Sentiment analysis fields
-    sentiment_label: str = SentimentLabel.NEUTRAL
+    sentiment_label: SentimentLabel = Field(default=SentimentLabel.NEUTRAL)
     sentiment_score: float = 0.0
-    
-    # Relationship
-    video: "Video" = Relationship(back_populates="comments")

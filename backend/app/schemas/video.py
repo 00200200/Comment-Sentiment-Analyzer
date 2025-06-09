@@ -1,9 +1,10 @@
-from pydantic import BaseModel
-from typing import Optional
+from pydantic import BaseModel, ConfigDict
+from typing import Optional, List
 from datetime import datetime
-from typing import List
 
 class VideoResponse(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+    
     id: str
     title: str
     channel_id: str
@@ -26,9 +27,6 @@ class VideoResponse(BaseModel):
     total_analyzed: int
     fetched_at: datetime
     last_update: datetime
-    
-    class Config:
-        orm_mode = True
 
 class AnalyzedVideoSummary(BaseModel):
     video_id: str

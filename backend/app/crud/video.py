@@ -1,41 +1,42 @@
 from typing import Optional, Dict, Any
-from sqlalchemy.future import select
-from sqlalchemy.orm import selectinload
-from sqlalchemy.ext.asyncio import AsyncSession
 from datetime import datetime
 
-from app.models.video import Video, AnalysisState
-from app.schemas import video as schemas
-
-
 from sqlalchemy import select, desc, func
+from sqlalchemy.ext.asyncio import AsyncSession
+
+from app.models.video import Video
+from app.models.enums import AnalysisState
+
 
 async def get_analyzed_videos_paginated(
     db: AsyncSession, offset: int, limit: int
 ):
-    query = select(Video).where(Video.analysis_state == "completed").order_by(desc(Video.fetched_at)).offset(offset).limit(limit)
+    query = select(Video)\
+        .where(Video.analysis_state.in_([AnalysisState.IN_PROGRESS, AnalysisState.COMPLETED]))\
+        .order_by(desc(Video.fetched_at))\
+        .offset(offset).limit(limit)
+
     result = await db.execute(query)
     videos = result.scalars().all()
 
     total = await db.scalar(
-        select(func.count()).select_from(Video).where(Video.analysis_state == "completed")
+        select(func.count()).select_from(Video).where(Video.analysis_state == AnalysisState.COMPLETED)
     )
 
     return videos, total
 
 
-
 async def get_video_by_id(db: AsyncSession, video_id: str) -> Optional[Video]:
-    """Get video by its ID without loading comments"""
-    query = select(Video).where(Video.id == video_id)
-    result = await db.execute(query)
+    """Get video by its ID (no relationship loading)"""
+    result = await db.execute(
+        select(Video).where(Video.id == video_id)
+    )
     return result.scalars().first()
 
 
-async def get_full_video_metadata(db: AsyncSession, video_id: str) -> Video:
-    query = select(Video).options(selectinload(Video.comments)).where(Video.id == video_id)
-    result = await db.execute(query)
-    return result.scalars().first()
+async def get_full_video_metadata(db: AsyncSession, video_id: str) -> Optional[Video]:
+    """Get video by ID (relationship removed)"""
+    return await get_video_by_id(db, video_id)
 
 
 async def create_video(db: AsyncSession, video_data: Dict[str, Any]) -> Video:
@@ -52,13 +53,13 @@ async def update_video(db: AsyncSession, video_id: str, video_data: Dict[str, An
     db_video = await get_video_by_id(db, video_id)
     if not db_video:
         return None
-        
+
     for key, value in video_data.items():
         if hasattr(db_video, key):
             setattr(db_video, key, value)
-            
+
     db_video.last_update = datetime.utcnow()
-    
+
     await db.commit()
     await db.refresh(db_video)
     return db_video
@@ -71,8 +72,11 @@ async def update_video_analysis_state(
     total_analyzed: Optional[int] = None
 ) -> Optional[Video]:
     """Update the analysis state of a video"""
-    update_data = {"analysis_state": state, "last_update": datetime.utcnow()}
+    update_data = {
+        "analysis_state": state,
+        "last_update": datetime.utcnow()
+    }
     if total_analyzed is not None:
         update_data["total_analyzed"] = total_analyzed
-        
+
     return await update_video(db, video_id, update_data)

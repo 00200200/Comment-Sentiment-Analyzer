@@ -33,4 +33,9 @@ app.include_router(chart_data.router)
 @app.on_event("startup")
 async def on_startup():
     from app.db.init_db import init_db
+    import logging
+    logger = logging.getLogger("uvicorn")
+    logger.info("▶️ Starting DB initialization...")
     await init_db()
+    logger.info("✅ DB initialized.")
+

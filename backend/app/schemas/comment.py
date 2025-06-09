@@ -1,35 +1,25 @@
-from pydantic import BaseModel, field_validator
+from pydantic import BaseModel
 from typing import Optional, List
 from datetime import datetime
 
-class Comment(BaseModel):
-    comment_id: str
+class CommentSchema(BaseModel):
+    id: str
     text: str
     author: str
     sentiment_label: str
-    sentiment: float
+    sentiment_score: float
     like_count: int
     dislike_count: Optional[int] = 0
-    published_at: str
+    published_at: datetime
 
-    @classmethod
-    def from_orm_model(cls, model: "Comment") -> "Comment":
-        return cls(
-            comment_id=model.id,
-            text=model.text,
-            author=model.author,
-            sentiment_label=model.sentiment_label,
-            sentiment=model.sentiment_score,
-            like_count=model.like_count,
-            dislike_count=model.dislike_count or 0,
-            published_at=model.published_at.isoformat(),
-        )
+    model_config = {
+        "from_attributes": True  # Enables ORM conversion
+    }
 
 
-
-class CommentsResponse(BaseModel):
+class CommentsResponseSchema(BaseModel):
     video_id: str
-    comments: List[Comment]
+    comments: List[CommentSchema]
     total_available: int
     total_expected: int
     offset: int
@@ -38,12 +28,12 @@ class CommentsResponse(BaseModel):
     analysis_state: str
 
 
-class ChartComment(BaseModel):
+class ChartCommentSchema(BaseModel):
     id: str
     published_at: str
     sentiment_label: Optional[str]
 
 
-class ChartCommentsResponse(BaseModel):
+class ChartCommentsResponseSchema(BaseModel):
     video_id: str
-    comments: List[ChartComment]
+    comments: List[ChartCommentSchema]

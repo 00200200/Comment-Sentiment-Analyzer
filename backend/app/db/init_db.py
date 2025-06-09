@@ -1,6 +1,6 @@
 from app.db.session import engine
 from app.models.video import Video
-from app.models.comment import Comment
+from app.models.comment import CommentModel
 from sqlmodel import SQLModel
 
 async def init_db():

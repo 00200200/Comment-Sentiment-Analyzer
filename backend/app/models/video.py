@@ -1,25 +1,11 @@
-from sqlmodel import SQLModel, Field, Relationship
-from typing import Optional, List
+from __future__ import annotations
 from datetime import datetime
-from enum import Enum
-
-
-class AnalysisState(str, Enum):
-    PENDING = "pending"
-    IN_PROGRESS = "in_progress"
-    COMPLETED = "completed"
-    FAILED = "failed"
-
-
-class EngagementLevel(str, Enum):
-    HIGH = "high"
-    MEDIUM = "medium"
-    LOW = "low"
-
+from sqlmodel import SQLModel, Field
+from app.models.enums import AnalysisState, EngagementLevel, SentimentLabel 
 
 class Video(SQLModel, table=True):
     __tablename__ = "videos"
-    
+
     id: str = Field(primary_key=True)
     title: str
     channel_id: str
@@ -29,21 +15,16 @@ class Video(SQLModel, table=True):
     like_count: int
     comment_count: int
     published_at: datetime
-    
-    # Analysis fields
+
     view_change_pct: float = 0.0
-    sentiment_label: str = "neutral"
+    sentiment_label: SentimentLabel = Field(default=SentimentLabel.NEUTRAL)
     sentiment_positive_pct: float = 0.0
-    engagement_level: str = EngagementLevel.MEDIUM
+    engagement_level: EngagementLevel = Field(default=EngagementLevel.MEDIUM)
     engagement_pct: float = 0.0
     trend: str = ""
     trend_explanation: str = ""
-    
-    # Tracking fields
-    analysis_state: str = AnalysisState.PENDING
+
+    analysis_state: AnalysisState = Field(default=AnalysisState.PENDING)
     total_analyzed: int = 0
     fetched_at: datetime = Field(default_factory=datetime.utcnow)
     last_update: datetime = Field(default_factory=datetime.utcnow)
-    
-    # Relationship
-    comments: List["Comment"] = Relationship(back_populates="video")

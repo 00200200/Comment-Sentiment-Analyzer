@@ -3,13 +3,13 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from typing import Optional
 
 from app.api.logic.comment import get_comments_paginated
-from app.schemas.comment import CommentsResponse
+from app.schemas.comment import CommentsResponseSchema
 from app.db.session import get_db
 from app.utils.text_utils import extract_video_id
 
 router = APIRouter()
 
-@router.get("/comments", response_model=CommentsResponse)
+@router.get("/comments", response_model=CommentsResponseSchema)
 async def fetch_comments_by_url(
     url: str = Query(..., description="YouTube video URL"),
     offset: int = Query(0, ge=0),
@@ -17,6 +17,7 @@ async def fetch_comments_by_url(
     sentiment: Optional[str] = Query(None),
     author: Optional[str] = Query(None),
     min_likes: Optional[int] = Query(None, ge=0),
+    phrase: Optional[str] = Query(None, description="Filter by phrase in comment"),
     sort_by: str = Query("published_at"),
     sort_order: str = Query("desc"),
     db: AsyncSession = Depends(get_db)
@@ -35,7 +36,8 @@ async def fetch_comments_by_url(
             author=author,
             min_likes=min_likes,
             sort_by=sort_by,
-            sort_order=sort_order
+            sort_order=sort_order,
+            phrase=phrase
         )
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
