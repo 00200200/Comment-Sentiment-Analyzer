@@ -6,66 +6,12 @@ import {
   PaginationPrevious,
 } from "@/components/ui/pagination";
 
-import type { AnalyzedVideoSummary } from "@/types/AnalyzedVideoList";
+import { VideoSummary } from "./VideoSummary";
 import { useAnalyzedVideos } from "@/hooks/useAnalyzedVideos";
 import { useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
 
-const VIDEOS_PER_PAGE = 5;
-
-// Extracted component for displaying a single video summary
-const VideoSummary = ({
-  video,
-  navigate,
-}: {
-  video: AnalyzedVideoSummary;
-  navigate: ReturnType<typeof useNavigate>;
-}) => {
-  return (
-    <div
-      key={video.id}
-      className="relative overflow-hidden rounded-md p-4 w-full text-left hover:bg-muted/70 transition cursor-pointer"
-      onClick={() =>
-        navigate({
-          to: "/video",
-          search: {
-            url: `https://www.youtube.com/watch?v=${video.id}`, // Corrected URL
-          },
-        })
-      }
-    >
-      <img
-        src={video.thumbnail_url}
-        alt="Video background"
-        className="absolute inset-0 w-full h-full object-cover opacity-10"
-      />
-      <div className="relative z-10 flex gap-4 items-start">
-        <img
-          src={video.thumbnail_url}
-          alt="Video thumbnail"
-          className="w-[128px] h-[80px] object-cover rounded flex-shrink-0"
-        />
-        <div className="flex flex-col">
-          <h3 className="text-lg font-semibold leading-tight">{video.title}</h3>
-          <p className="text-sm text-gray-500">{video.channel_name}</p>
-          <p className="text-sm">
-            {video.total_analyzed} / {video.comment_count} comments analyzed
-          </p>
-          <p className="text-sm">Analysis State: {video.analysis_state}</p>
-          {video.sentiment_totals && (
-            <div className="flex space-x-2">
-              {Object.entries(video.sentiment_totals).map(([label, count]) => (
-                <p key={label} className="text-xs">
-                  {label}: {count}
-                </p>
-              ))}
-            </div>
-          )}
-        </div>
-      </div>
-    </div>
-  );
-};
+const VIDEOS_PER_PAGE = 2;
 
 // Extracted component for the pagination controls
 const VideoPagination = ({
