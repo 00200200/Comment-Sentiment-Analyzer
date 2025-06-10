@@ -88,10 +88,6 @@ export function VideoDetails({ analysis }: VideoDetailsProps) {
 
   return (
     <section className="mt-4 mb-8">
-      <h2 className="text-xl text-center font-medium mb-4">
-        Analysis Overview
-      </h2>
-
       <div className="relative overflow-hidden rounded-md p-6 flex flex-col items-center text-center">
         <img
           src={thumbnail_url}
@@ -99,13 +95,13 @@ export function VideoDetails({ analysis }: VideoDetailsProps) {
           className="absolute inset-0 w-full h-full object-cover opacity-10"
         />
 
-        <div className="relative w-full max-w-xl flex flex-col items-center">
+        <div className="relative w-full max-w-xl flex flex-col items-center gap-4">
+          <img
+            src={thumbnail_url}
+            alt="Video Thumbnail"
+            className="w-48 h-24 object-cover rounded-md flex-shrink-0"
+          />
           <div className="flex items-center justify-center gap-4 w-full">
-            <img
-              src={thumbnail_url}
-              alt="Video Thumbnail"
-              className="w-40 h-24 object-cover rounded-md flex-shrink-0"
-            />
             <div>
               <h3 className="text-lg font-bold">{title}</h3>
               <p className="text-sm text-gray-500">{channel_name}</p>
