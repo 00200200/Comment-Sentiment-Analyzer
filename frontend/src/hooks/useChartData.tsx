@@ -7,7 +7,7 @@ export function useChartData(url: string) {
     queryKey: ["chartData", url],
     queryFn: () => fetchChartData(url),
     enabled: !!url,
-    staleTime: 1000 * 60 * 5,
     refetchOnWindowFocus: false,
+    refetchInterval: 1000 * 3, // Refetch every 2 second
   });
 }

@@ -1,6 +1,3 @@
-// Use type-only imports for string literal types
-import type { SentimentHeadline, SentimentLabel } from "@/types/types";
-
 import { StatBlock } from "./StatBlock";
 import type { VideoResponse } from "@/types/VideoResponse";
 
@@ -18,7 +15,6 @@ export function VideoDetails({ analysis }: VideoDetailsProps) {
     channel_name,
     engagement_rate,
     sentiment_headline,
-    average_sentiment_score, // If you plan to use this, uncomment the relevant display. Otherwise, consider removing from destructuring.
     sentiment_totals,
     like_rate,
     controversiality_score, // Corrected variable name

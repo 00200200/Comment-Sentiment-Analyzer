@@ -7,7 +7,6 @@ export function useVideoAnalysis(videoUrl: string) {
     queryKey: ["videoAnalysis", videoUrl],
     queryFn: () => analyzeVideo(videoUrl),
     enabled: !!videoUrl,
-    refetchOnWindowFocus: false,
-    staleTime: 1000 * 60 * 5,
+    refetchInterval: 1000 * 3, // Refetch every 2 second
   });
 }

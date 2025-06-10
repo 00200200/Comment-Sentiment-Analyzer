@@ -13,6 +13,6 @@ export function useComments(
     queryKey: ["comments", videoUrl, params],
     queryFn: () => fetchComments(videoUrl, params),
     enabled: !!videoUrl,
-    staleTime: 1000 * 60 * 2,
+    refetchInterval: 1000 * 3, // Refetch every 3 second
   });
 }
