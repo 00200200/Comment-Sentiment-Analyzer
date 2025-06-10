@@ -1,5 +1,5 @@
 import type { AnalyzedVideoList } from "@/types/AnalyzedVideoList";
-import { fetchAnalyzedVideos } from "@/services/api";
+import { fetchAnalyzedVideos } from "@/services/videosApi"; // Updated import path
 import { useQuery } from "@tanstack/react-query";
 
 export function useAnalyzedVideos(offset: number, limit: number) {

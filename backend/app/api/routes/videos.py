@@ -1,6 +1,7 @@
 from typing import Optional, Union
 from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Query
 from sqlalchemy.ext.asyncio import AsyncSession
+from urllib.parse import unquote
 
 from app.utils.text_utils import extract_video_id
 from app.api.logic.video import get_or_create_video, get_paginated_video_list
@@ -17,10 +18,30 @@ async def get_videos(
     background_tasks: BackgroundTasks = BackgroundTasks(),
     db: AsyncSession = Depends(get_db)
 ):
+    """
+    Handles requests for video analysis or a list of analyzed videos.
+
+    If a 'url' query parameter is provided:
+    - Extracts the YouTube video ID.
+    - Fetches or creates the video entry in the database.
+    - Triggers background analysis if the video is new or requires re-analysis.
+    
+    If no 'url' is provided:
+    - Returns a paginated list of previously analyzed videos.
+    """
     if url:
-        video_id = extract_video_id(url)
+        # Decode the URL to ensure 'extract_video_id' receives a clean, unencoded string.
+        # This accounts for varying client-side encoding behaviors or multiple encoding layers.
+        decoded_url = unquote(url)
+        
+        video_id = extract_video_id(decoded_url)
+        
         if not video_id:
-            raise HTTPException(status_code=400, detail="Invalid YouTube video URL")
+            raise HTTPException(
+                status_code=400, 
+                detail=f"Invalid YouTube video URL or could not extract ID from: {decoded_url}"
+            )
+        
         return await get_or_create_video(video_id, db, background_tasks)
     
     return await get_paginated_video_list(db, offset, limit)

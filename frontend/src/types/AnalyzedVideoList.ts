@@ -1,13 +1,16 @@
+import type { AnalysisState, SentimentLabel } from "./types";
+
 export interface AnalyzedVideoSummary {
-  video_id: string;
+  id: string;
   title: string;
   channel_name: string;
   thumbnail_url: string;
-  published_at: string;
+  published_at: string; // Using string for datetime
   view_count: number;
   comment_count: number;
+  sentiment_totals?: { [key in SentimentLabel]?: number }; // Optional
   total_analyzed: number;
-  analysis_state: string;
+  analysis_state: AnalysisState;
 }
 
 export interface AnalyzedVideoList {

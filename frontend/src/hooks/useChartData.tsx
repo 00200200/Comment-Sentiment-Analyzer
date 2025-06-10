@@ -1,5 +1,5 @@
 import type { ChartCommentsResponse } from "@/types/ChartCommentsResponse";
-import { fetchChartData } from "@/services/api";
+import { fetchChartData } from "@/services/commentsApi"; // Updated import path
 import { useQuery } from "@tanstack/react-query";
 
 export function useChartData(url: string) {

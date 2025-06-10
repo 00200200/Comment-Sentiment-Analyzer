@@ -30,7 +30,7 @@ export function CommentItem({
     >
       <CardContent className="p-3 flex flex-col justify-between h-full">
         <div>
-          <h3 className="font-semibold text-sm">@{author}</h3>
+          <h3 className="font-semibold text-sm">{author}</h3>
           <p className="text-sm text-gray-700 dark:text-gray-300">
             {displayText}
             {shouldTruncate && (

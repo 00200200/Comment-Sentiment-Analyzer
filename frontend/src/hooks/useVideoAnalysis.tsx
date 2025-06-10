@@ -1,10 +1,9 @@
-import type { AnalyzeResponse } from "@/types/VideoResponse";
-import { analyzeVideo } from "@/services/api";
-// src/hooks/useVideoAnalysis.ts
+import type { VideoResponse } from "@/types/VideoResponse";
+import { analyzeVideo } from "@/services/videosApi"; // Updated import path
 import { useQuery } from "@tanstack/react-query";
 
 export function useVideoAnalysis(videoUrl: string) {
-  return useQuery<AnalyzeResponse, Error>({
+  return useQuery<VideoResponse, Error>({
     queryKey: ["videoAnalysis", videoUrl],
     queryFn: () => analyzeVideo(videoUrl),
     enabled: !!videoUrl,
