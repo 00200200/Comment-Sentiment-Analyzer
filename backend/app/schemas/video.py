@@ -6,33 +6,40 @@ from app.models.enums import SentimentLabel
 class VideoResponse(BaseModel):
     model_config = ConfigDict(from_attributes=True)
     
-    id: str
-    title: str
-    channel_id: str
-    channel_name: str
-    thumbnail_url: str
-    view_count: int
-    like_count: int
-    comment_count: int
-    published_at: datetime
+    # Youtube video metadata
+    id: str                                                         # Video ID
+    title: str                                                      # Video title  
+    channel_id: str                                                 # Channel ID    
+    channel_name: str                                               # Channel name
+    thumbnail_url: str                                              # Thumbnail URL
+    view_count: int                                                 # View count
+    like_count: int                                                 # Like count
+    comment_count: int                                              # Comment count
+    published_at: datetime                                          # Published date and time
     
-    view_change_pct: float
-    sentiment_label: str
-    sentiment_positive_pct: float
-    sentiment_totals: Optional[Dict[SentimentLabel, int]] = None
-    engagement_level: str
-    engagement_pct: float
-    trend: str
-    trend_explanation: str
+    # Analysis metadata
+    like_rate: Optional[float] = None                               # Likes per 1000 views
+    sentiment_headline: str                                         # Overall sentiment label (smart interpretation)
+    average_sentiment_score: float                                  # Sentiment average score
+    controversiality_score: Optional[float] = None                  # How split the sentiment is (0 = unified, 1 = polarizing)
+    sentiment_totals: Optional[Dict[SentimentLabel, int]] = None    # Counts of each sentiment label
+    engagement_label: str                                           # Engagement level (Comments & likes as a percentage of views)
+    engagement_rate: float                                          # Engagement rate
     
-    analysis_state: str
-    total_analyzed: int
-    fetched_at: datetime
-    last_update: datetime
+    # Comment analysis
+    total_analyzed: int                                             # Total number of comments analyzed
+    average_comment_length: Optional[float] = None                  # Average comment length (optional)
+    comment_rate: Optional[float] = None                            # Comments per 1000 views (optional)
+    
+    # Analysis state
+    analysis_state: str                                             # Current state of analysis (e.g., PENDING, COMPLETED, FAILED)
+    fetched_at: datetime                                            # When the video was fetched
+    meta_last_update: datetime                                      # Last metadata update timestamp
+    sentiment_last_update: datetime                                 # Last sentiment data update timestamp
     
 
 class AnalyzedVideoSummary(BaseModel):
-    video_id: str
+    id: str
     title: str
     channel_name: str
     thumbnail_url: str

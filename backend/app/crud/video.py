@@ -58,7 +58,8 @@ async def update_video(db: AsyncSession, video_id: str, video_data: Dict[str, An
         if hasattr(db_video, key):
             setattr(db_video, key, value)
 
-    db_video.last_update = datetime.utcnow()
+    # Optional: update the appropriate timestamp automatically if needed
+    # e.g., if updating sentiment fields, you could auto-set sentiment_last_update
 
     await db.commit()
     await db.refresh(db_video)
@@ -74,7 +75,7 @@ async def update_video_analysis_state(
     """Update the analysis state of a video"""
     update_data = {
         "analysis_state": state,
-        "last_update": datetime.utcnow()
+        "meta_last_update": datetime.utcnow()  # Consider whether this should be meta or sentiment
     }
     if total_analyzed is not None:
         update_data["total_analyzed"] = total_analyzed

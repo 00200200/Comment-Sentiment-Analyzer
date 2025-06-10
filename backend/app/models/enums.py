@@ -16,3 +16,11 @@ class EngagementLevel(str, Enum):
     HIGH = "high"
     MEDIUM = "medium"
     LOW = "low"
+    
+class SentimentHeadline(str, Enum):
+    POSITIVE = "positive"
+    NEUTRAL = "neutral"
+    NEGATIVE = "negative"
+    CONTROVERSIAL = "controversial"
+    VIRAL = "viral"
+    BORING = "boring"

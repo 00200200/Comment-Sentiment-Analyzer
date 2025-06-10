@@ -84,6 +84,21 @@ async def save_comment(db: AsyncSession, video_id: str, comment: dict, sentiment
         await db.rollback()
         raise
 
+async def get_comment_analysis_metrics(db: AsyncSession, video_id: str):
+    avg_score_query = select(func.avg(CommentModel.sentiment_score)).where(CommentModel.video_id == video_id)
+    avg_length_query = select(func.avg(func.length(CommentModel.text))).where(CommentModel.video_id == video_id)
+
+    avg_score_result = await db.execute(avg_score_query)
+    avg_length_result = await db.execute(avg_length_query)
+
+    avg_score = avg_score_result.scalar() or 0.0
+    avg_length = avg_length_result.scalar() or 0.0
+
+    return {
+        "average_sentiment_score": avg_score,
+        "average_comment_length": avg_length,
+    }
+
 
 async def query_comments(
     db: AsyncSession,
