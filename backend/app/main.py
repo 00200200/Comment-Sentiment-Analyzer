@@ -1,8 +1,7 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from app.api import endpoints
+from app.api.routes import comments, videos, chart_data
 from app.core.config import settings
-from fastapi.middleware.cors import CORSMiddleware
 
 app = FastAPI(
     title="Emotube API",
@@ -10,10 +9,10 @@ app = FastAPI(
     version="1.0.0",
 )
 
-# Configure CORS middleware
+# Configure CORS
 origins = [
-    f"http://{settings.HOST}:{settings.FRONTEND_PORT}",  # Frontend
-    f"http://{settings.HOST}:{settings.BACKEND_PORT}",  # Backend
+    f"http://{settings.HOST}:{settings.FRONTEND_PORT}",
+    f"http://{settings.HOST}:{settings.BACKEND_PORT}",
     f"http://localhost:{settings.FRONTEND_PORT}",
     f"http://emotube-frontend:{settings.FRONTEND_PORT}",
 ]
@@ -26,9 +25,17 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-app.include_router(endpoints.router)
+# Include feature-based routers
+app.include_router(videos.router)
+app.include_router(comments.router)
+app.include_router(chart_data.router)
 
+@app.on_event("startup")
+async def on_startup():
+    from app.db.init_db import init_db
+    import logging
+    logger = logging.getLogger("uvicorn")
+    logger.info("▶️ Starting DB initialization...")
+    await init_db()
+    logger.info("✅ DB initialized.")
 
-if __name__ == "__main__":
-    import uvicorn
-    uvicorn.run(app, host=settings.HOST, port=settings.PORT, reload=True)

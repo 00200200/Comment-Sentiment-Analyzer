@@ -9,3 +9,7 @@ starlette
 hf_xet
 numpy<2
 sentencepiece
+asyncpg
+SQLAlchemy>=2.0
+sqlmodel
+alembic
