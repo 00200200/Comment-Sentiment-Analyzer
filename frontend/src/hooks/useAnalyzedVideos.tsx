@@ -8,5 +8,6 @@ export function useAnalyzedVideos(offset: number, limit: number) {
     queryFn: () => fetchAnalyzedVideos(offset, limit),
     placeholderData: undefined,
     staleTime: 1000 * 60 * 3,
+    refetchInterval: 1000 * 3, // Refetch every 2 second
   });
 }

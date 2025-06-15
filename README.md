@@ -32,6 +32,17 @@ Emotube is a cutting-edge sentiment analysis platform that transforms social med
 
 ---
 
+## User Interface
+
+![alt text](readme_photos/ui_home.png)
+![alt text](readme_photos/ui_home_query.png)
+![alt text](readme_photos/ui_video_header.png)
+![alt text](readme_photos/ui_video_chart.png)
+![alt text](readme_photos/ui_video_chart_period.png)
+![alt text](readme_photos/ui_video_comments.png)
+
+---
+
 ## 🏗️ Architecture
 
 The project follows a modern microservices architecture with complete Docker containerization:
@@ -331,4 +342,3 @@ docker-compose logs db
 - **🚀 Caching Strategy** - Optimized data retrieval
 
 ---
-

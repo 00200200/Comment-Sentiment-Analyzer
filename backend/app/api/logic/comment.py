@@ -74,7 +74,6 @@ async def analyze_all_comments(db: AsyncSession, video_id: str):
         )
 
         logger.info(f"[BG] Completed analysis for {video_id}. Total: {total_analyzed}")
-        logger.info(f"[BG] Sentiment breakdown: {dict(sentiment_totals)}")
 
     except Exception:
         logger.exception(f"[BG] Fatal error during analysis for video {video_id}")
