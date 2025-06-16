@@ -46,7 +46,7 @@ Emotube is a cutting-edge sentiment analysis platform that transforms social med
 
 </div>
 
-### 📊 Video Analysis Dashboard
+### 💬 Comment Analysis Interface
 
 <div align="center">
 
@@ -58,12 +58,6 @@ Emotube is a cutting-edge sentiment analysis platform that transforms social med
 
 **Advanced Chart Filtering with Time Period Selection**
 ![Chart Period Filtering](readme_photos/ui_video_chart_period.png)
-
-</div>
-
-### 💬 Comment Analysis Interface
-
-<div align="center">
 
 **Detailed Comment Sentiment Analysis with Advanced Filtering**
 ![Comments Analysis](readme_photos/ui_video_comments.png)
