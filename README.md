@@ -32,14 +32,52 @@ Emotube is a cutting-edge sentiment analysis platform that transforms social med
 
 ---
 
-## User Interface
+## 🖥️ User Interface Showcase
 
-![alt text](readme_photos/ui_home.png)
-![alt text](readme_photos/ui_home_query.png)
-![alt text](readme_photos/ui_video_header.png)
-![alt text](readme_photos/ui_video_chart.png)
-![alt text](readme_photos/ui_video_chart_period.png)
-![alt text](readme_photos/ui_video_comments.png)
+### 🏠 Home Page & Video Analysis
+
+<div align="center">
+
+**Landing Page with Clean, Modern Design**
+![Home Page](readme_photos/ui_home.png)
+
+**YouTube URL Input and Analysis Initiation**
+![Video URL Query](readme_photos/ui_home_query.png)
+
+</div>
+
+### 📊 Video Analysis Dashboard
+
+<div align="center">
+
+**Comprehensive Video Information Display**
+![Video Header](readme_photos/ui_video_header.png)
+
+**Interactive Sentiment Analysis Charts**
+![Sentiment Charts](readme_photos/ui_video_chart.png)
+
+**Advanced Chart Filtering with Time Period Selection**
+![Chart Period Filtering](readme_photos/ui_video_chart_period.png)
+
+</div>
+
+### 💬 Comment Analysis Interface
+
+<div align="center">
+
+**Detailed Comment Sentiment Analysis with Advanced Filtering**
+![Comments Analysis](readme_photos/ui_video_comments.png)
+
+</div>
+
+### ✨ Key UI Features
+
+- **🎨 Modern Design** - Clean, responsive interface built with Tailwind CSS and ShadCN/UI
+- **📊 Interactive Charts** - Real-time sentiment visualization with Recharts
+- **🔍 Advanced Filtering** - Multi-criteria comment filtering and sorting
+- **⚡ Real-time Updates** - Live progress tracking during analysis
+- **📱 Responsive Layout** - Optimized for desktop and mobile devices
+- **🌙 Dark Mode Ready** - Consistent theming across all components
 
 ---
 
